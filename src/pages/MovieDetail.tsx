@@ -60,7 +60,7 @@ function Detail({ movie: m, autoplay }: { movie: Movie; autoplay: boolean }) {
       setAccess(r);
       return r;
     } catch {
-      const r = { allowed: false, amount: '200.00' };
+      const r = { allowed: false, amount: '1000.00' };
       setAccess(r);
       return r;
     }
@@ -333,7 +333,7 @@ function Paywall({ movie, amount, onClose }: { movie: Movie; amount: string; onC
     try {
       // Leaves the site for Flutterwave; /payment/callback finishes the unlock.
       await PaymentService.startCheckout({
-        planId: PLAN_BASIC,
+        plan: PLAN_BASIC,
         planName: 'Basic Movie',
         movieId: movie.id,
         movieTitle: movie.title,

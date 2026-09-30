@@ -127,7 +127,7 @@ export const MovieService = {
   async checkAccess(movieId: number) {
     const { status, data } = await api(`/movies/${movieId}/download/`, { allowStatus: [402] });
     if (status === 402) {
-      return { allowed: false, amount: String(data?.amount ?? '200.00'), downloadUrl: '' };
+      return { allowed: false, amount: String(data?.amount ?? '1000.00'), downloadUrl: '' };
     }
     return { allowed: true, amount: '0', downloadUrl: buildMediaUrl(data?.download_url) };
   },
@@ -143,13 +143,15 @@ export const MovieService = {
 
 // ── Payments (PaymentService) ──────────────────────────────────────
 
-export const PLAN_BASIC = 1;
-export const PLAN_PREMIUM = 2;
+// Plans are sent by name; the backend looks them up (database ids can differ).
+export const PLAN_BASIC = 'BASIC';
+export const PLAN_PREMIUM = 'PREMIUM';
+export type PlanCode = typeof PLAN_BASIC | typeof PLAN_PREMIUM;
 
 /** What to do once Flutterwave sends the browser back to /payment/callback. */
 export interface PendingPayment {
   txRef: string;
-  planId: number;
+  plan: PlanCode;
   planName: string;
   movieId?: number;
   movieTitle?: string;
@@ -159,14 +161,14 @@ const PENDING_KEY = 'pending_payment';
 
 export const PaymentService = {
   /**
-   * Starts checkout for [planId] and leaves the page for Flutterwave.
+   * Starts checkout for [plan] and leaves the page for Flutterwave.
    * In backend test mode there is no real checkout, so we verify straight away.
    */
   async startCheckout(pending: Omit<PendingPayment, 'txRef'>) {
     const redirectUrl = `${window.location.origin}/payment/callback`;
     const { data } = await api('/payments/initiate/', {
       method: 'POST',
-      body: { plan_id: pending.planId, redirect_url: redirectUrl },
+      body: { plan_name: pending.plan, redirect_url: redirectUrl },
     });
     const txRef: string = data.tx_ref;
     const link: string = data.payment_link;
