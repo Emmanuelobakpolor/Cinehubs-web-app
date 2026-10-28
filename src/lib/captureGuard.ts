@@ -3,10 +3,15 @@ import { useEffect, useState } from 'react';
 /**
  * Best-effort screenshot / screen-recording deterrent for the player.
  *
- * A web page cannot truly stop OS-level capture — only DRM-protected video
- * (Widevine/PlayReady via EME) renders black in captures. This hides the picture
- * whenever capture is likely: the window loses focus (Snipping Tool, OBS, Game
- * Bar overlays steal it), the tab is hidden, or a screenshot shortcut is pressed.
+ * A web page cannot detect or stop OS-level capture. When a movie plays in
+ * "drm" mode (see lib/streaming.ts) the browser/OS may itself black out the
+ * video in captures — reliably on Safari/iOS with FairPlay and on hardware-backed
+ * Widevine/PlayReady, rarely on desktop Chrome's software Widevine — while the
+ * free AES-128 "hls" mode gets no such protection. So this stays as a secondary
+ * layer for every mode: it hides the picture whenever capture is likely — the
+ * window loses focus (Snipping Tool, OBS, Game Bar overlays steal it), the tab
+ * is hidden, or a screenshot shortcut is pressed. Recording tools that never
+ * take focus are not caught; the viewer watermark is what traces those leaks.
  */
 export function useCaptureGuard(onShield: () => void) {
   const [shielded, setShielded] = useState(false);
